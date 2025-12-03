@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Deal Printing</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/admin-dashboard.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- HAPUS DataTables CSS -->
+    <!-- <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css"> -->
+    <!-- HAPUS flatpickr jika tidak perlu -->
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"> -->
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="bg-dark text-white" id="sidebar-wrapper">
+            <div class="sidebar-heading text-center py-4 bg-primary">
+                <i class="bi bi-printer-fill h2"></i>
+                <h4 class="mb-0">Deal Printing</h4>
+                <small>Admin Dashboard</small>
+            </div>
+            <div class="list-group list-group-flush my-3">
+                <a href="#dashboard" class="list-group-item list-group-item-action bg-dark text-white active" data-section="dashboard">
+                    <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                </a>
+                <a href="#orders" class="list-group-item list-group-item-action bg-dark text-white" data-section="orders">
+                    <i class="bi bi-cart me-2"></i>Pesanan
+                </a>
+                <a href="#customers" class="list-group-item list-group-item-action bg-dark text-white" data-section="customers">
+                    <i class="bi bi-people me-2"></i>Pelanggan
+                </a>
+                <a href="#products" class="list-group-item list-group-item-action bg-dark text-white" data-section="products">
+                    <i class="bi bi-box-seam me-2"></i>Produk
+                </a>
+                <a href="#reports" class="list-group-item list-group-item-action bg-dark text-white" data-section="reports">
+                    <i class="bi bi-graph-up me-2"></i>Laporan
+                </a>
+                <a href="#settings" class="list-group-item list-group-item-action bg-dark text-white" data-section="settings">
+                    <i class="bi bi-gear me-2"></i>Pengaturan
+                </a>
+            </div>
+            <div class="mt-auto p-3">
+                <div class="d-grid">
+                    <button class="btn btn-outline-light" id="logoutBtn">
+                        <i class="bi bi-box-arrow-left me-2"></i>Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <!-- Top Navigation -->
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <div class="container-fluid">
+                    <button class="btn btn-primary" id="menu-toggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <div class="navbar-nav ms-auto">
+                        <div class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle me-2"></i>
+                                <span id="adminEmail">Admin</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="index.html"><i class="bi bi-house me-2"></i>Beranda</a></li>
+                                <li><a class="dropdown-item" href="order.html"><i class="bi bi-cart-plus me-2"></i>Buat Pesanan</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><button class="dropdown-item" id="logoutDropdownBtn"><i class="bi bi-box-arrow-left me-2"></i>Logout</button></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <div class="container-fluid px-4 py-4">
+                <!-- Dashboard Section -->
+                <section id="dashboard" class="dashboard-section">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="bi bi-speedometer2 me-2"></i>Dashboard</h2>
+                        <button class="btn btn-outline-primary btn-sm" onclick="refreshDashboardData()">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+                        </button>
+                    </div>
+                    
+                    <!-- Stats Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 mb-3">
+                            <div class="card stat-card bg-primary text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="card-subtitle mb-2">Total Pesanan</h6>
+                                            <h3 class="card-title mb-0" id="totalOrders">0</h3>
+                                        </div>
+                                        <i class="bi bi-cart h1 opacity-50"></i>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small><i class="bi bi-arrow-up me-1"></i> <span id="orderGrowth">0%</span> dari bulan lalu</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card stat-card bg-success text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="card-subtitle mb-2">Pendapatan</h6>
+                                            <h3 class="card-title mb-0" id="totalRevenue">Rp 0</h3>
+                                        </div>
+                                        <i class="bi bi-currency-dollar h1 opacity-50"></i>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small><i class="bi bi-arrow-up me-1"></i> <span id="revenueGrowth">0%</span> dari bulan lalu</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card stat-card bg-warning text-dark">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="card-subtitle mb-2">Pending</h6>
+                                            <h3 class="card-title mb-0" id="pendingOrders">0</h3>
+                                        </div>
+                                        <i class="bi bi-clock h1 opacity-50"></i>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small><i class="bi bi-exclamation-circle me-1"></i> Perlu tindakan</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card stat-card bg-info text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="card-subtitle mb-2">Pelanggan</h6>
+                                            <h3 class="card-title mb-0" id="totalCustomers">0</h3>
+                                        </div>
+                                        <i class="bi bi-people h1 opacity-50"></i>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small><i class="bi bi-arrow-up me-1"></i> <span id="customerGrowth">0%</span> pelanggan baru</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts -->
+                    <div class="row mb-4">
+                        <div class="col-lg-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Statistik Pesanan 30 Hari Terakhir</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="orderChart" height="250"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Distribusi Produk</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="productChart" height="250"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Orders -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Pesanan Terbaru</h5>
+                            <a href="#orders" class="btn btn-sm btn-primary view-all-orders">Lihat Semua</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="recentOrdersTable">
+                                    <thead>
+                                        <tr>
+                                            <th>No. Pesanan</th>
+                                            <th>Pelanggan</th>
+                                            <th>Produk</th>
+                                            <th>Tanggal</th>
+                                            <th>Total</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentOrdersBody">
+                                        <!-- Data akan diisi oleh JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Orders Section -->
+                <section id="orders" class="dashboard-section d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="bi bi-cart me-2"></i>Manajemen Pesanan</h2>
+                        <button class="btn btn-primary" id="exportOrdersBtn">
+                            <i class="bi bi-download me-2"></i>Export CSV
+                        </button>
+                    </div>
+
+                    <!-- Filter Section -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="filterStatus">
+                                        <option value="">Semua Status</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="processing">Diproses</option>
+                                        <option value="completed">Selesai</option>
+                                        <option value="cancelled">Dibatalkan</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Produk</label>
+                                    <select class="form-select" id="filterProduct">
+                                        <option value="">Semua Produk</option>
+                                        <option value="undangan">Undangan</option>
+                                        <option value="kartu-nama">Kartu Nama</option>
+                                        <option value="spanduk">Spanduk</option>
+                                        <option value="brosur">Brosur</option>
+                                        <option value="poster">Poster</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Tanggal Mulai</label>
+                                    <input type="date" class="form-control" id="filterStartDate">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Tanggal Akhir</label>
+                                    <input type="date" class="form-control" id="filterEndDate">
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="d-flex justify-content-end">
+                                        <button class="btn btn-secondary me-2" id="resetFilterBtn">
+                                            <i class="bi bi-arrow-clockwise me-2"></i>Reset
+                                        </button>
+                                        <button class="btn btn-primary" id="applyFilterBtn">
+                                            <i class="bi bi-funnel me-2"></i>Filter
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Orders Table -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="ordersTable">
+                                    <thead>
+                                        <tr>
+                                            <th>No.</th>
+                                            <th>No. Pesanan</th>
+                                            <th>Pelanggan</th>
+                                            <th>Produk</th>
+                                            <th>Jumlah</th>
+                                            <th>Total</th>
+                                            <th>Tanggal</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ordersBody">
+                                        <!-- Data akan diisi oleh JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Customers Section -->
+                <section id="customers" class="dashboard-section d-none">
+                    <h2 class="mb-4"><i class="bi bi-people me-2"></i>Data Pelanggan</h2>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="customersTable">
+                                    <thead>
+                                        <tr>
+                                            <th>No.</th>
+                                            <th>Nama</th>
+                                            <th>Email</th>
+                                            <th>Telepon</th>
+                                            <th>Total Pesanan</th>
+                                            <th>Total Belanja</th>
+                                            <th>Terakhir Pesan</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="customersBody">
+                                        <!-- Data akan diisi oleh JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Products Section -->
+                <section id="products" class="dashboard-section d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2><i class="bi bi-box-seam me-2"></i>Manajemen Produk</h2>
+                        <button class="btn btn-primary" id="addProductBtn">
+                            <i class="bi bi-plus-circle me-2"></i>Tambah Produk
+                        </button>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover" id="productsTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Produk</th>
+                                                    <th>Kategori</th>
+                                                    <th>Harga</th>
+                                                    <th>Stok</th>
+                                                    <th>Status</th>
+                                                    <th>Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="productsBody">
+                                                <!-- Data akan diisi oleh JavaScript -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Produk Terlaris</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="bestSellersList">
+                                        <!-- Data akan diisi oleh JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Reports Section -->
+                <section id="reports" class="dashboard-section d-none">
+                    <h2 class="mb-4"><i class="bi bi-graph-up me-2"></i>Laporan</h2>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Laporan Harian</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="dailyReport"></div>
+                                    <button class="btn btn-sm btn-outline-primary mt-3" id="generateDailyReport">
+                                        <i class="bi bi-download me-2"></i>Generate Laporan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Laporan Bulanan</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="monthlyReport"></div>
+                                    <button class="btn btn-sm btn-outline-primary mt-3" id="generateMonthlyReport">
+                                        <i class="bi bi-download me-2"></i>Generate Laporan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Laporan Tahunan</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="yearlyReport"></div>
+                                    <button class="btn btn-sm btn-outline-primary mt-3" id="generateYearlyReport">
+                                        <i class="bi bi-download me-2"></i>Generate Laporan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Settings Section -->
+                <section id="settings" class="dashboard-section d-none">
+                    <h2 class="mb-4"><i class="bi bi-gear me-2"></i>Pengaturan</h2>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Pengaturan Aplikasi</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="appSettingsForm">
+                                        <div class="mb-3">
+                                            <label class="form-label">Nama Aplikasi</label>
+                                            <input type="text" class="form-control" value="Deal Printing" readonly>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Email Admin</label>
+                                            <input type="email" class="form-control" id="adminEmailInput">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Notifikasi Email</label>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                                                <label class="form-check-label" for="emailNotifications">
+                                                    Aktifkan notifikasi email untuk pesanan baru
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-save me-2"></i>Simpan Pengaturan
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Informasi Sistem</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <strong>Versi Aplikasi:</strong> 1.0.0
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Firebase Project:</strong> deal-printing-app
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Total Data Pesanan:</strong> <span id="totalDataCount">0</span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Status Database:</strong> <span class="badge bg-success">Online</span>
+                                    </div>
+                                    <hr>
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        <small>Data tersimpan di Firebase Firestore. Backup otomatis dilakukan setiap hari.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div class="modal fade" id="orderDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detail Pesanan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="orderDetailContent">
+                    <!-- Detail pesanan akan diisi oleh JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- HAPUS jQuery dan DataTables -->
+    <!-- <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script> -->
+    <!-- <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script> -->
+    <!-- HAPUS library lain jika tidak perlu -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script> -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script> -->
+    <script type="module" src="js/admin-dashboard.js"></script>
+</body>
+</html>

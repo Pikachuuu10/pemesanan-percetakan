@@ -6,33 +6,39 @@ import {
     collection, 
     getDocs, 
     updateDoc, 
-    deleteDoc, 
     doc,
     query,
-    where,
     serverTimestamp,
-    orderBy
-    // HAPUS: limit (karena tidak ada di config.js)
+    orderBy,
+    addDoc,
+    deleteDoc
 } from './config.js';
 
 // Global variables
 let allOrders = [];
 let allCustomers = [];
 let currentUser = null;
+let allProducts = [];
 
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Dashboard loaded, initializing...');
     initDashboard();
 });
 
 async function initDashboard() {
+    console.log('🔑 Checking authentication...');
+    
     // Cek autentikasi
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
-            // Redirect ke login jika belum login
+            console.log('❌ No user logged in, redirecting to login');
             window.location.href = 'login.html';
         } else {
+            console.log(`✅ User logged in: ${user.email}`);
             currentUser = user;
+            
+            // Update email di navbar
             const adminEmailEl = document.getElementById('adminEmail');
             if (adminEmailEl) {
                 adminEmailEl.textContent = user.email;
@@ -40,13 +46,21 @@ async function initDashboard() {
             
             // Load semua data
             await loadDashboardData();
-            setupEventListeners();
+            await loadProducts();
+            
+            // Setup event listeners
+            setTimeout(() => {
+                setupEventListeners();
+                console.log('✅ Dashboard fully initialized');
+            }, 100);
         }
     });
 }
 
-// Setup event listeners
+// Setup semua event listeners
 function setupEventListeners() {
+    console.log('🔧 Setting up event listeners...');
+    
     // Toggle sidebar
     const menuToggle = document.getElementById('menu-toggle');
     if (menuToggle) {
@@ -56,16 +70,17 @@ function setupEventListeners() {
                 sidebar.classList.toggle('active');
             }
         });
+        console.log('✅ Menu toggle button setup');
     }
     
     // Navigation between sections
-    document.querySelectorAll('#sidebar-wrapper a').forEach(link => {
+    document.querySelectorAll('#sidebar-wrapper a[data-section]').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             const section = this.getAttribute('data-section');
             
             // Update active state
-            document.querySelectorAll('#sidebar-wrapper a').forEach(l => {
+            document.querySelectorAll('#sidebar-wrapper a[data-section]').forEach(l => {
                 l.classList.remove('active');
             });
             this.classList.add('active');
@@ -78,6 +93,12 @@ function setupEventListeners() {
             const targetSection = document.getElementById(section);
             if (targetSection) {
                 targetSection.classList.remove('d-none');
+                console.log(`Switched to section: ${section}`);
+                
+                // Load specific data if needed
+                if (section === 'products') {
+                    displayProducts();
+                }
             }
         });
     });
@@ -86,48 +107,135 @@ function setupEventListeners() {
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', handleLogout);
+        console.log('✅ Logout button setup');
     }
     
     const logoutDropdownBtn = document.getElementById('logoutDropdownBtn');
     if (logoutDropdownBtn) {
         logoutDropdownBtn.addEventListener('click', handleLogout);
+        console.log('✅ Logout dropdown button setup');
     }
     
-    // Filter orders
+    // Filter buttons
     const applyFilterBtn = document.getElementById('applyFilterBtn');
     if (applyFilterBtn) {
         applyFilterBtn.addEventListener('click', filterOrders);
+        console.log('✅ Apply filter button setup');
     }
     
     const resetFilterBtn = document.getElementById('resetFilterBtn');
     if (resetFilterBtn) {
         resetFilterBtn.addEventListener('click', resetFilters);
+        console.log('✅ Reset filter button setup');
     }
     
-    // Export orders
+    // Export button
     const exportOrdersBtn = document.getElementById('exportOrdersBtn');
     if (exportOrdersBtn) {
         exportOrdersBtn.addEventListener('click', exportOrdersToCSV);
+        console.log('✅ Export button setup');
     }
     
-    // View all orders
+    // View all orders button
     const viewAllOrdersBtn = document.querySelector('.view-all-orders');
     if (viewAllOrdersBtn) {
         viewAllOrdersBtn.addEventListener('click', (e) => {
             e.preventDefault();
             const ordersLink = document.querySelector('[data-section="orders"]');
-            if (ordersLink) ordersLink.click();
+            if (ordersLink) {
+                ordersLink.click();
+            }
+        });
+        console.log('✅ View all orders button setup');
+    }
+    
+    // Refresh button
+    const refreshBtn = document.querySelector('[onclick="refreshDashboardData()"]');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            window.refreshDashboardData();
+        });
+    }
+    
+    // Products section buttons
+    setupProductButtons();
+    
+    // Reports section buttons
+    setupReportButtons();
+    
+    // Settings section
+    setupSettings();
+    
+    console.log('✅ All event listeners setup complete');
+}
+
+// Setup product buttons
+function setupProductButtons() {
+    // Add product button
+    const addProductBtn = document.getElementById('addProductBtn');
+    if (addProductBtn) {
+        addProductBtn.addEventListener('click', showAddProductModal);
+        console.log('✅ Add product button setup');
+    }
+    
+    // Save product button
+    const saveProductBtn = document.getElementById('saveProductBtn');
+    if (saveProductBtn) {
+        saveProductBtn.addEventListener('click', saveProduct);
+    }
+    
+    // Close product modal button
+    const closeProductModalBtn = document.getElementById('closeProductModal');
+    if (closeProductModalBtn) {
+        closeProductModalBtn.addEventListener('click', () => {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
+            modal.hide();
         });
     }
 }
 
-// Load dashboard data
+// Setup report buttons
+function setupReportButtons() {
+    // Daily report
+    const generateDailyReportBtn = document.getElementById('generateDailyReport');
+    if (generateDailyReportBtn) {
+        generateDailyReportBtn.addEventListener('click', generateDailyReport);
+        console.log('✅ Daily report button setup');
+    }
+    
+    // Monthly report
+    const generateMonthlyReportBtn = document.getElementById('generateMonthlyReport');
+    if (generateMonthlyReportBtn) {
+        generateMonthlyReportBtn.addEventListener('click', generateMonthlyReport);
+        console.log('✅ Monthly report button setup');
+    }
+    
+    // Yearly report
+    const generateYearlyReportBtn = document.getElementById('generateYearlyReport');
+    if (generateYearlyReportBtn) {
+        generateYearlyReportBtn.addEventListener('click', generateYearlyReport);
+        console.log('✅ Yearly report button setup');
+    }
+}
+
+// Setup settings
+function setupSettings() {
+    const appSettingsForm = document.getElementById('appSettingsForm');
+    if (appSettingsForm) {
+        appSettingsForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            saveSettings();
+        });
+    }
+}
+
+// Load dashboard data dari Firebase
 async function loadDashboardData() {
     try {
         showLoading(true);
-        console.log('📊 Loading dashboard data from Firebase...');
+        console.log('📊 Loading data from Firebase...');
         
-        // Load orders dari Firebase
+        // Load orders
         const ordersQuery = query(
             collection(db, 'orders'),
             orderBy('tanggal', 'desc')
@@ -143,82 +251,58 @@ async function loadDashboardData() {
         const dailyStats = {};
         const customerMap = {};
         
-        console.log(`✅ Found ${ordersSnapshot.size} orders in Firebase`);
+        console.log(`✅ Found ${ordersSnapshot.size} orders`);
         
         ordersSnapshot.forEach(doc => {
-            try {
-                const orderData = doc.data();
-                console.log('Order data:', orderData);
-                
-                const order = { 
-                    id: doc.id, 
-                    ...orderData
-                };
-                
-                // Convert Firestore timestamp to Date jika ada
-                if (order.tanggal && typeof order.tanggal.toDate === 'function') {
-                    order.tanggalDate = order.tanggal.toDate();
-                } else if (order.tanggal) {
-                    order.tanggalDate = new Date(order.tanggal);
+            const orderData = doc.data();
+            const order = { 
+                id: doc.id, 
+                ...orderData
+            };
+            
+            // Convert timestamp
+            if (order.tanggal && typeof order.tanggal.toDate === 'function') {
+                order.tanggalDate = order.tanggal.toDate();
+            } else if (order.tanggal) {
+                order.tanggalDate = new Date(order.tanggal);
+            }
+            
+            allOrders.push(order);
+            
+            // Calculate stats
+            totalRevenue += parseFloat(order.totalHarga) || 0;
+            if (order.status === 'pending') pendingCount++;
+            
+            // Customer stats
+            if (order.email) {
+                customersSet.add(order.email);
+                if (!customerMap[order.email]) {
+                    customerMap[order.email] = {
+                        nama: order.nama || 'No Name',
+                        email: order.email,
+                        telepon: order.telepon || '-',
+                        totalOrders: 0,
+                        totalSpent: 0,
+                        lastOrder: order.tanggalDate || new Date()
+                    };
                 }
-                
-                allOrders.push(order);
-                
-                // Calculate stats
-                totalRevenue += parseFloat(order.totalHarga) || 0;
-                if (order.status === 'pending') pendingCount++;
-                
-                // Customer stats
-                if (order.email) {
-                    customersSet.add(order.email);
-                    if (!customerMap[order.email]) {
-                        customerMap[order.email] = {
-                            nama: order.nama || 'Tidak ada nama',
-                            email: order.email,
-                            telepon: order.telepon || '-',
-                            totalOrders: 0,
-                            totalSpent: 0,
-                            lastOrder: order.tanggalDate || new Date()
-                        };
-                    }
-                    customerMap[order.email].totalOrders++;
-                    customerMap[order.email].totalSpent += parseFloat(order.totalHarga) || 0;
-                    
-                    // Update last order date
-                    const currentLastOrder = customerMap[order.email].lastOrder;
-                    if (order.tanggalDate && (!currentLastOrder || order.tanggalDate > currentLastOrder)) {
-                        customerMap[order.email].lastOrder = order.tanggalDate;
-                    }
-                }
-                
-                // Product stats
-                if (order.produk) {
-                    productStats[order.produk] = (productStats[order.produk] || 0) + 1;
-                }
-                
-                // Daily stats (last 30 days)
-                if (order.tanggalDate) {
-                    const dateStr = order.tanggalDate.toLocaleDateString('id-ID', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric'
-                    });
-                    dailyStats[dateStr] = (dailyStats[dateStr] || 0) + 1;
-                }
-                
-            } catch (error) {
-                console.error('Error processing order:', error);
+                customerMap[order.email].totalOrders++;
+                customerMap[order.email].totalSpent += parseFloat(order.totalHarga) || 0;
+            }
+            
+            // Product stats
+            if (order.produk) {
+                productStats[order.produk] = (productStats[order.produk] || 0) + 1;
+            }
+            
+            // Daily stats
+            if (order.tanggalDate) {
+                const dateStr = order.tanggalDate.toLocaleDateString('id-ID');
+                dailyStats[dateStr] = (dailyStats[dateStr] || 0) + 1;
             }
         });
         
         allCustomers = Object.values(customerMap);
-        
-        console.log('📈 Statistics:', {
-            totalOrders: allOrders.length,
-            totalRevenue,
-            pendingCount,
-            uniqueCustomers: customersSet.size
-        });
         
         // Update UI
         updateDashboardStats(allOrders.length, totalRevenue, pendingCount, customersSet.size);
@@ -227,50 +311,113 @@ async function loadDashboardData() {
         displayCustomers(allCustomers);
         createCharts(dailyStats, productStats);
         
-        // Juga load data dari localStorage untuk sinkronisasi
-        await loadLocalData();
-        
         showLoading(false);
+        console.log('✅ Dashboard data loaded successfully');
         
     } catch (error) {
         console.error('❌ Error loading data:', error);
-        showAlert('danger', `Gagal memuat data: ${error.message}`);
-        
-        // Coba load dari localStorage sebagai fallback
-        try {
-            await loadLocalData();
-        } catch (localError) {
-            console.error('❌ Error loading local data:', localError);
-        }
-        
+        showAlert('danger', 'Gagal memuat data: ' + error.message);
         showLoading(false);
     }
 }
 
-// Load data dari localStorage
-async function loadLocalData() {
+// Load products
+async function loadProducts() {
     try {
-        const localOrders = JSON.parse(localStorage.getItem('dealPrintingOrders') || '[]');
-        const unsyncedOrders = localOrders.filter(order => order.isLocal && !order.synced);
+        console.log('📦 Loading products...');
         
-        if (unsyncedOrders.length > 0) {
-            console.log(`📱 Found ${unsyncedOrders.length} unsynced local orders`);
-            
-            // Tampilkan notifikasi
-            showAlert('warning', 
-                `Ada ${unsyncedOrders.length} pesanan yang belum disinkron ke server. 
-                <a href="admin-sync.html" class="alert-link">Sinkronkan sekarang</a>`
-            );
+        const productsQuery = query(
+            collection(db, 'products'),
+            orderBy('nama')
+        );
+        
+        const productsSnapshot = await getDocs(productsQuery);
+        
+        allProducts = [];
+        productsSnapshot.forEach(doc => {
+            allProducts.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        console.log(`✅ Found ${allProducts.length} products`);
+        
+        // If no products in database, create default products
+        if (allProducts.length === 0) {
+            await createDefaultProducts();
+            await loadProducts(); // Reload after creating
         }
         
     } catch (error) {
-        console.error('Error loading local data:', error);
+        console.error('❌ Error loading products:', error);
+    }
+}
+
+// Create default products
+async function createDefaultProducts() {
+    console.log('Creating default products...');
+    
+    const defaultProducts = [
+        {
+            nama: 'Undangan',
+            kategori: 'undangan',
+            harga: 50000,
+            stok: 999,
+            status: 'active',
+            deskripsi: 'Undangan pernikahan, ulang tahun, atau acara spesial',
+            createdAt: serverTimestamp()
+        },
+        {
+            nama: 'Kartu Nama',
+            kategori: 'kartu-nama',
+            harga: 25000,
+            stok: 999,
+            status: 'active',
+            deskripsi: 'Kartu nama profesional untuk bisnis',
+            createdAt: serverTimestamp()
+        },
+        {
+            nama: 'Spanduk/Banner',
+            kategori: 'spanduk',
+            harga: 100000,
+            stok: 999,
+            status: 'active',
+            deskripsi: 'Spanduk dan banner untuk promosi',
+            createdAt: serverTimestamp()
+        },
+        {
+            nama: 'Brosur/Flyer',
+            kategori: 'brosur',
+            harga: 30000,
+            stok: 999,
+            status: 'active',
+            deskripsi: 'Brosur dan flyer untuk promosi',
+            createdAt: serverTimestamp()
+        },
+        {
+            nama: 'Poster',
+            kategori: 'poster',
+            harga: 40000,
+            stok: 999,
+            status: 'active',
+            deskripsi: 'Poster untuk dekorasi atau promosi',
+            createdAt: serverTimestamp()
+        }
+    ];
+    
+    try {
+        for (const product of defaultProducts) {
+            await addDoc(collection(db, 'products'), product);
+        }
+        console.log('✅ Default products created');
+    } catch (error) {
+        console.error('❌ Error creating default products:', error);
     }
 }
 
 // Update dashboard statistics
 function updateDashboardStats(totalOrders, totalRevenue, pendingOrders, totalCustomers) {
-    // Update elements jika ada
     const updateElement = (id, value) => {
         const el = document.getElementById(id);
         if (el) el.textContent = value;
@@ -282,18 +429,17 @@ function updateDashboardStats(totalOrders, totalRevenue, pendingOrders, totalCus
     updateElement('totalCustomers', totalCustomers);
     updateElement('totalDataCount', totalOrders);
     
-    // Calculate growth (simulated for now)
-    const orderGrowth = totalOrders > 0 ? Math.floor(Math.random() * 20) + 5 : 0;
-    const revenueGrowth = totalRevenue > 0 ? Math.floor(Math.random() * 25) + 8 : 0;
-    const customerGrowth = totalCustomers > 0 ? Math.floor(Math.random() * 15) + 3 : 0;
+    // Growth stats (simulated)
+    const growthElements = {
+        'orderGrowth': totalOrders > 0 ? '12%' : '0%',
+        'revenueGrowth': totalRevenue > 0 ? '18%' : '0%',
+        'customerGrowth': totalCustomers > 0 ? '8%' : '0%'
+    };
     
-    const orderGrowthEl = document.getElementById('orderGrowth');
-    const revenueGrowthEl = document.getElementById('revenueGrowth');
-    const customerGrowthEl = document.getElementById('customerGrowth');
-    
-    if (orderGrowthEl) orderGrowthEl.textContent = `${orderGrowth}%`;
-    if (revenueGrowthEl) revenueGrowthEl.textContent = `${revenueGrowth}%`;
-    if (customerGrowthEl) customerGrowthEl.textContent = `${customerGrowth}%`;
+    Object.entries(growthElements).forEach(([id, value]) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    });
 }
 
 // Display recent orders
@@ -316,12 +462,8 @@ function displayRecentOrders(orders) {
     
     orders.forEach(order => {
         const date = order.tanggalDate ? 
-            order.tanggalDate.toLocaleDateString('id-ID', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-            }) : 
-            (order.tanggal ? new Date(order.tanggal).toLocaleDateString('id-ID') : 'N/A');
+            order.tanggalDate.toLocaleDateString('id-ID') : 
+            'N/A';
         
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -338,7 +480,7 @@ function displayRecentOrders(orders) {
             <td class="text-end">Rp ${(order.totalHarga || 0).toLocaleString('id-ID')}</td>
             <td>${getStatusBadge(order.status)}</td>
             <td>
-                <button class="btn btn-sm btn-outline-primary btn-action" onclick="viewOrderDetail('${order.id}')">
+                <button class="btn btn-sm btn-outline-primary" onclick="viewOrderDetail('${order.id}')">
                     <i class="bi bi-eye"></i>
                 </button>
             </td>
@@ -371,12 +513,8 @@ function displayAllOrders(orders) {
     
     orders.forEach((order, index) => {
         const date = order.tanggalDate ? 
-            order.tanggalDate.toLocaleDateString('id-ID', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-            }) : 
-            (order.tanggal ? new Date(order.tanggal).toLocaleDateString('id-ID') : 'N/A');
+            order.tanggalDate.toLocaleDateString('id-ID') : 
+            'N/A';
         
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -397,13 +535,13 @@ function displayAllOrders(orders) {
             <td>${getStatusBadge(order.status)}</td>
             <td>
                 <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-primary" onclick="viewOrderDetail('${order.id}')" title="Lihat Detail">
+                    <button class="btn btn-outline-primary" onclick="viewOrderDetail('${order.id}')">
                         <i class="bi bi-eye"></i>
                     </button>
-                    <button class="btn btn-outline-success" onclick="updateOrderStatus('${order.id}', 'processing')" title="Proses Pesanan">
+                    <button class="btn btn-outline-success" onclick="updateOrderStatus('${order.id}', 'processing')">
                         <i class="bi bi-check-circle"></i>
                     </button>
-                    <button class="btn btn-outline-danger" onclick="updateOrderStatus('${order.id}', 'cancelled')" title="Batalkan">
+                    <button class="btn btn-outline-danger" onclick="updateOrderStatus('${order.id}', 'cancelled')">
                         <i class="bi bi-x-circle"></i>
                     </button>
                 </div>
@@ -427,7 +565,6 @@ function displayCustomers(customers) {
                     <div class="py-5">
                         <i class="bi bi-people display-1 text-muted mb-3"></i>
                         <h5>Belum ada pelanggan</h5>
-                        <p class="text-muted">Data pelanggan akan muncul di sini</p>
                     </div>
                 </td>
             </tr>
@@ -435,31 +572,24 @@ function displayCustomers(customers) {
         return;
     }
     
-    // Sort customers by total spent (descending)
     customers.sort((a, b) => b.totalSpent - a.totalSpent);
     
     customers.forEach((customer, index) => {
         const lastOrder = customer.lastOrder ? 
-            customer.lastOrder.toLocaleDateString('id-ID', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-            }) : 
+            customer.lastOrder.toLocaleDateString('id-ID') : 
             'N/A';
         
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${index + 1}</td>
             <td>
-                <strong class="d-block">${customer.nama || '-'}</strong>
-                <small class="text-muted">${customer.email || '-'}</small>
+                <strong>${customer.nama}</strong><br>
+                <small class="text-muted">${customer.email}</small>
             </td>
-            <td>${customer.email || '-'}</td>
-            <td>${customer.telepon || '-'}</td>
-            <td class="text-center">
-                <span class="badge bg-primary">${customer.totalOrders || 0}</span>
-            </td>
-            <td class="text-end">Rp ${(customer.totalSpent || 0).toLocaleString('id-ID')}</td>
+            <td>${customer.email}</td>
+            <td>${customer.telepon}</td>
+            <td class="text-center"><span class="badge bg-primary">${customer.totalOrders}</span></td>
+            <td class="text-end">Rp ${customer.totalSpent.toLocaleString('id-ID')}</td>
             <td><small>${lastOrder}</small></td>
             <td>
                 <button class="btn btn-sm btn-outline-primary" onclick="viewCustomerOrders('${customer.email}')">
@@ -471,160 +601,198 @@ function displayCustomers(customers) {
     });
 }
 
+// Display products
+function displayProducts() {
+    const tbody = document.getElementById('productsBody');
+    const bestSellersList = document.getElementById('bestSellersList');
+    
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    if (allProducts.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                    <i class="bi bi-box-seam me-2"></i>Belum ada produk
+                </td>
+            </tr>
+        `;
+        
+        if (bestSellersList) {
+            bestSellersList.innerHTML = `
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Tidak ada data produk
+                </div>
+            `;
+        }
+        return;
+    }
+    
+    // Display products table
+    allProducts.forEach((product, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>
+                <strong>${product.nama}</strong>
+                ${product.deskripsi ? `<br><small class="text-muted">${product.deskripsi}</small>` : ''}
+            </td>
+            <td>${getProductCategoryName(product.kategori)}</td>
+            <td>Rp ${product.harga.toLocaleString('id-ID')}</td>
+            <td>
+                <span class="badge ${product.stok > 10 ? 'bg-success' : product.stok > 0 ? 'bg-warning' : 'bg-danger'}">
+                    ${product.stok}
+                </span>
+            </td>
+            <td>
+                <span class="badge ${product.status === 'active' ? 'bg-success' : 'bg-secondary'}">
+                    ${product.status === 'active' ? 'Aktif' : 'Nonaktif'}
+                </span>
+            </td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="editProduct('${product.id}')">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="deleteProduct('${product.id}')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    // Display best sellers
+    if (bestSellersList) {
+        // Calculate best sellers from orders
+        const productSales = {};
+        allOrders.forEach(order => {
+            if (order.produk) {
+                productSales[order.produk] = (productSales[order.produk] || 0) + (order.jumlah || 1);
+            }
+        });
+        
+        const sortedProducts = Object.entries(productSales)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+        
+        if (sortedProducts.length > 0) {
+            let html = '';
+            sortedProducts.forEach(([productId, sales], index) => {
+                const product = allProducts.find(p => p.kategori === productId) || { nama: getProductName(productId) };
+                html += `
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <span class="badge bg-primary me-2">${index + 1}</span>
+                            ${product.nama}
+                        </div>
+                        <span class="badge bg-success">${sales} terjual</span>
+                    </div>
+                `;
+            });
+            bestSellersList.innerHTML = html;
+        } else {
+            bestSellersList.innerHTML = `
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Belum ada data penjualan
+                </div>
+            `;
+        }
+    }
+}
+
 // Create charts
 function createCharts(dailyStats, productStats) {
-    console.log('Creating charts with data:', { dailyStats, productStats });
-    
-    // Prepare data for order chart
-    const dates = Object.keys(dailyStats);
-    const orderCounts = dates.map(date => dailyStats[date] || 0);
-    
     // Order Chart
     const orderCtx = document.getElementById('orderChart');
-    if (orderCtx && dates.length > 0) {
-        try {
-            // Destroy existing chart jika ada
-            if (window.orderChartInstance) {
-                window.orderChartInstance.destroy();
-            }
-            
-            window.orderChartInstance = new Chart(orderCtx, {
-                type: 'line',
-                data: {
-                    labels: dates,
-                    datasets: [{
-                        label: 'Jumlah Pesanan',
-                        data: orderCounts,
-                        borderColor: '#0d6efd',
-                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top'
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `Pesanan: ${context.raw}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1,
-                                callback: function(value) {
-                                    return Number.isInteger(value) ? value : '';
-                                }
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                maxRotation: 45,
-                                minRotation: 45
-                            }
-                        }
+    if (orderCtx && Object.keys(dailyStats).length > 0) {
+        const dates = Object.keys(dailyStats).slice(-7); // Last 7 days
+        const orderCounts = dates.map(date => dailyStats[date] || 0);
+        
+        // Clear previous chart
+        if (window.orderChartInstance) {
+            window.orderChartInstance.destroy();
+        }
+        
+        window.orderChartInstance = new Chart(orderCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Pesanan',
+                    data: orderCounts,
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    borderWidth: 2,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true
                     }
                 }
-            });
-        } catch (error) {
-            console.error('Error creating order chart:', error);
-        }
-    } else if (orderCtx) {
-        orderCtx.innerHTML = `
-            <div class="text-center text-muted py-5">
-                <i class="bi bi-bar-chart display-4 mb-3"></i>
-                <p>Tidak ada data untuk ditampilkan</p>
-            </div>
-        `;
+            }
+        });
     }
     
     // Product Chart
     const productCtx = document.getElementById('productChart');
     if (productCtx && Object.keys(productStats).length > 0) {
-        try {
-            const products = Object.keys(productStats);
-            const productCounts = products.map(product => productStats[product]);
-            const colors = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6c757d', '#0dcaf0'];
-            
-            // Destroy existing chart jika ada
-            if (window.productChartInstance) {
-                window.productChartInstance.destroy();
-            }
-            
-            window.productChartInstance = new Chart(productCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: products.map(p => getProductName(p)),
-                    datasets: [{
-                        data: productCounts,
-                        backgroundColor: colors,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.label || '';
-                                    const value = context.raw || 0;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = Math.round((value / total) * 100);
-                                    return `${label}: ${value} pesanan (${percentage}%)`;
-                                }
-                            }
-                        }
+        const products = Object.keys(productStats);
+        const productCounts = products.map(product => productStats[product]);
+        const colors = ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6c757d'];
+        
+        // Clear previous chart
+        if (window.productChartInstance) {
+            window.productChartInstance.destroy();
+        }
+        
+        window.productChartInstance = new Chart(productCtx, {
+            type: 'doughnut',
+            data: {
+                labels: products.map(p => getProductName(p)),
+                datasets: [{
+                    data: productCounts,
+                    backgroundColor: colors
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
                     }
                 }
-            });
-        } catch (error) {
-            console.error('Error creating product chart:', error);
-        }
-    } else if (productCtx) {
-        productCtx.innerHTML = `
-            <div class="text-center text-muted py-5">
-                <i class="bi bi-pie-chart display-4 mb-3"></i>
-                <p>Tidak ada data produk untuk ditampilkan</p>
-            </div>
-        `;
+            }
+        });
     }
 }
 
 // Filter orders
 function filterOrders() {
+    console.log('🔍 Filtering orders...');
+    
     const status = document.getElementById('filterStatus')?.value || '';
     const product = document.getElementById('filterProduct')?.value || '';
     const startDate = document.getElementById('filterStartDate')?.value;
     const endDate = document.getElementById('filterEndDate')?.value;
     
-    console.log('Filtering with:', { status, product, startDate, endDate });
-    
     let filteredOrders = [...allOrders];
     
     if (status) {
         filteredOrders = filteredOrders.filter(order => order.status === status);
+        console.log(`Status filter "${status}": ${filteredOrders.length} orders`);
     }
     
     if (product) {
         filteredOrders = filteredOrders.filter(order => order.produk === product);
+        console.log(`Product filter "${product}": ${filteredOrders.length} orders`);
     }
     
     if (startDate) {
@@ -645,23 +813,27 @@ function filterOrders() {
         });
     }
     
-    console.log(`Filtered to ${filteredOrders.length} orders`);
+    console.log(`Total filtered: ${filteredOrders.length} orders`);
     displayAllOrders(filteredOrders);
+    
+    if (filteredOrders.length === 0) {
+        showAlert('info', 'Tidak ada pesanan yang sesuai dengan filter');
+    } else {
+        showAlert('success', `Menampilkan ${filteredOrders.length} pesanan`);
+    }
 }
 
 // Reset filters
 function resetFilters() {
-    const filterStatus = document.getElementById('filterStatus');
-    const filterProduct = document.getElementById('filterProduct');
-    const filterStartDate = document.getElementById('filterStartDate');
-    const filterEndDate = document.getElementById('filterEndDate');
+    console.log('🔄 Resetting filters...');
     
-    if (filterStatus) filterStatus.value = '';
-    if (filterProduct) filterProduct.value = '';
-    if (filterStartDate) filterStartDate.value = '';
-    if (filterEndDate) filterEndDate.value = '';
+    document.getElementById('filterStatus').value = '';
+    document.getElementById('filterProduct').value = '';
+    document.getElementById('filterStartDate').value = '';
+    document.getElementById('filterEndDate').value = '';
     
     displayAllOrders(allOrders);
+    showAlert('success', 'Filter telah direset');
 }
 
 // Export orders to CSV
@@ -672,34 +844,29 @@ function exportOrdersToCSV() {
     }
     
     try {
-        const headers = ['No. Pesanan', 'Nama', 'Email', 'Telepon', 'Produk', 'Jumlah', 'Total', 'Tanggal', 'Status', 'Catatan'];
-        
+        const headers = ['No. Pesanan', 'Nama', 'Email', 'Produk', 'Jumlah', 'Total', 'Tanggal', 'Status'];
         const csvData = allOrders.map(order => [
             order.nomorPesanan || '',
             order.nama || '',
             order.email || '',
-            order.telepon || '',
             getProductName(order.produk),
             order.jumlah || 1,
             order.totalHarga || 0,
             order.tanggalDate ? order.tanggalDate.toLocaleDateString('id-ID') : '',
-            order.status || 'pending',
-            order.catatan || ''
+            order.status || 'pending'
         ]);
         
         const csvContent = [
             headers.join(','),
-            ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+            ...csvData.map(row => row.join(','))
         ].join('\n');
         
-        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob([csvContent], { type: 'text/csv' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         
-        link.setAttribute('href', url);
-        link.setAttribute('download', `pesanan_deal_printing_${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-        
+        link.href = url;
+        link.download = `pesanan_${new Date().toISOString().split('T')[0]}.csv`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -708,7 +875,296 @@ function exportOrdersToCSV() {
         
     } catch (error) {
         console.error('Error exporting CSV:', error);
-        showAlert('danger', 'Gagal export data: ' + error.message);
+        showAlert('danger', 'Gagal export data');
+    }
+}
+
+// Generate reports
+async function generateDailyReport() {
+    try {
+        showLoading(true);
+        
+        const today = new Date();
+        const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+        
+        const dailyOrders = allOrders.filter(order => {
+            if (!order.tanggalDate) return false;
+            return order.tanggalDate >= startOfDay && order.tanggalDate <= endOfDay;
+        });
+        
+        const totalRevenue = dailyOrders.reduce((sum, order) => sum + (order.totalHarga || 0), 0);
+        
+        const reportContent = `
+            LAPORAN HARIAN - ${today.toLocaleDateString('id-ID')}
+            ===========================================
+            Total Pesanan: ${dailyOrders.length}
+            Total Pendapatan: Rp ${totalRevenue.toLocaleString('id-ID')}
+            Rata-rata per Pesanan: Rp ${dailyOrders.length > 0 ? Math.round(totalRevenue / dailyOrders.length).toLocaleString('id-ID') : 0}
+            
+            Detail Pesanan:
+            ${dailyOrders.map((order, index) => `
+            ${index + 1}. ${order.nomorPesanan} - ${order.nama} - ${getProductName(order.produk)} - Rp ${order.totalHarga.toLocaleString('id-ID')}
+            `).join('')}
+            
+            Generated: ${new Date().toLocaleString('id-ID')}
+        `;
+        
+        const blob = new Blob([reportContent], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `laporan_harian_${today.toISOString().split('T')[0]}.txt`;
+        link.click();
+        
+        showAlert('success', 'Laporan harian berhasil dihasilkan');
+        
+    } catch (error) {
+        console.error('Error generating daily report:', error);
+        showAlert('danger', 'Gagal membuat laporan');
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function generateMonthlyReport() {
+    try {
+        showLoading(true);
+        
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+        
+        const monthlyOrders = allOrders.filter(order => {
+            if (!order.tanggalDate) return false;
+            return order.tanggalDate >= startOfMonth && order.tanggalDate <= endOfMonth;
+        });
+        
+        const totalRevenue = monthlyOrders.reduce((sum, order) => sum + (order.totalHarga || 0), 0);
+        
+        const reportContent = `
+            LAPORAN BULANAN - ${now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
+            ===============================================
+            Total Pesanan: ${monthlyOrders.length}
+            Total Pendapatan: Rp ${totalRevenue.toLocaleString('id-ID')}
+            Rata-rata per Hari: Rp ${Math.round(totalRevenue / 30).toLocaleString('id-ID')}
+            
+            Statistik Produk:
+            ${getProductStats(monthlyOrders)}
+            
+            Generated: ${new Date().toLocaleString('id-ID')}
+        `;
+        
+        const blob = new Blob([reportContent], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `laporan_bulanan_${now.getFullYear()}_${now.getMonth() + 1}.txt`;
+        link.click();
+        
+        showAlert('success', 'Laporan bulanan berhasil dihasilkan');
+        
+    } catch (error) {
+        console.error('Error generating monthly report:', error);
+        showAlert('danger', 'Gagal membuat laporan');
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function generateYearlyReport() {
+    try {
+        showLoading(true);
+        
+        const now = new Date();
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
+        const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+        
+        const yearlyOrders = allOrders.filter(order => {
+            if (!order.tanggalDate) return false;
+            return order.tanggalDate >= startOfYear && order.tanggalDate <= endOfYear;
+        });
+        
+        const totalRevenue = yearlyOrders.reduce((sum, order) => sum + (order.totalHarga || 0), 0);
+        
+        const reportContent = `
+            LAPORAN TAHUNAN - ${now.getFullYear()}
+            ===================================
+            Total Pesanan: ${yearlyOrders.length}
+            Total Pendapatan: Rp ${totalRevenue.toLocaleString('id-ID')}
+            Rata-rata per Bulan: Rp ${Math.round(totalRevenue / 12).toLocaleString('id-ID')}
+            
+            Ringkasan Bulanan:
+            ${getMonthlyStats(yearlyOrders)}
+            
+            Generated: ${new Date().toLocaleString('id-ID')}
+        `;
+        
+        const blob = new Blob([reportContent], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `laporan_tahunan_${now.getFullYear()}.txt`;
+        link.click();
+        
+        showAlert('success', 'Laporan tahunan berhasil dihasilkan');
+        
+    } catch (error) {
+        console.error('Error generating yearly report:', error);
+        showAlert('danger', 'Gagal membuat laporan');
+    } finally {
+        showLoading(false);
+    }
+}
+
+function getProductStats(orders) {
+    const productStats = {};
+    orders.forEach(order => {
+        if (order.produk) {
+            productStats[order.produk] = (productStats[order.produk] || 0) + 1;
+        }
+    });
+    
+    return Object.entries(productStats)
+        .map(([product, count]) => `${getProductName(product)}: ${count} pesanan`)
+        .join('\n');
+}
+
+function getMonthlyStats(orders) {
+    const monthlyStats = {};
+    orders.forEach(order => {
+        if (order.tanggalDate) {
+            const month = order.tanggalDate.getMonth();
+            monthlyStats[month] = (monthlyStats[month] || 0) + 1;
+        }
+    });
+    
+    const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+                       'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    
+    return monthNames.map((month, index) => {
+        const count = monthlyStats[index] || 0;
+        return `${month}: ${count} pesanan`;
+    }).join('\n');
+}
+
+// Product management
+function showAddProductModal() {
+    console.log('Showing add product modal');
+    
+    // Reset form
+    document.getElementById('productId').value = '';
+    document.getElementById('productName').value = '';
+    document.getElementById('productCategory').value = 'undangan';
+    document.getElementById('productPrice').value = '';
+    document.getElementById('productStock').value = '';
+    document.getElementById('productDescription').value = '';
+    document.getElementById('productStatus').value = 'active';
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('productModal'));
+    modal.show();
+}
+
+async function saveProduct() {
+    try {
+        const productId = document.getElementById('productId').value;
+        const productData = {
+            nama: document.getElementById('productName').value,
+            kategori: document.getElementById('productCategory').value,
+            harga: parseInt(document.getElementById('productPrice').value),
+            stok: parseInt(document.getElementById('productStock').value),
+            deskripsi: document.getElementById('productDescription').value,
+            status: document.getElementById('productStatus').value,
+            updatedAt: serverTimestamp()
+        };
+        
+        if (!productData.nama || !productData.harga || !productData.stok) {
+            showAlert('warning', 'Harap isi semua field yang wajib');
+            return;
+        }
+        
+        if (productId) {
+            // Update existing product
+            await updateDoc(doc(db, 'products', productId), productData);
+            showAlert('success', 'Produk berhasil diperbarui');
+        } else {
+            // Add new product
+            productData.createdAt = serverTimestamp();
+            await addDoc(collection(db, 'products'), productData);
+            showAlert('success', 'Produk berhasil ditambahkan');
+        }
+        
+        // Reload products
+        await loadProducts();
+        displayProducts();
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
+        modal.hide();
+        
+    } catch (error) {
+        console.error('Error saving product:', error);
+        showAlert('danger', 'Gagal menyimpan produk: ' + error.message);
+    }
+}
+
+async function editProduct(productId) {
+    try {
+        const product = allProducts.find(p => p.id === productId);
+        if (!product) return;
+        
+        // Fill form
+        document.getElementById('productId').value = product.id;
+        document.getElementById('productName').value = product.nama;
+        document.getElementById('productCategory').value = product.kategori;
+        document.getElementById('productPrice').value = product.harga;
+        document.getElementById('productStock').value = product.stok;
+        document.getElementById('productDescription').value = product.deskripsi || '';
+        document.getElementById('productStatus').value = product.status;
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('productModal'));
+        modal.show();
+        
+    } catch (error) {
+        console.error('Error editing product:', error);
+        showAlert('danger', 'Gagal mengedit produk');
+    }
+}
+
+async function deleteProduct(productId) {
+    if (!confirm('Apakah Anda yakin ingin menghapus produk ini?')) return;
+    
+    try {
+        await deleteDoc(doc(db, 'products', productId));
+        showAlert('success', 'Produk berhasil dihapus');
+        
+        // Reload products
+        await loadProducts();
+        displayProducts();
+        
+    } catch (error) {
+        console.error('Error deleting product:', error);
+        showAlert('danger', 'Gagal menghapus produk');
+    }
+}
+
+// Settings
+async function saveSettings() {
+    try {
+        const email = document.getElementById('adminEmailInput').value;
+        const notifications = document.getElementById('emailNotifications').checked;
+        
+        // Save to localStorage or your backend
+        localStorage.setItem('adminSettings', JSON.stringify({
+            email: email,
+            notifications: notifications,
+            savedAt: new Date().toISOString()
+        }));
+        
+        showAlert('success', 'Pengaturan berhasil disimpan');
+        
+    } catch (error) {
+        console.error('Error saving settings:', error);
+        showAlert('danger', 'Gagal menyimpan pengaturan');
     }
 }
 
@@ -724,50 +1180,30 @@ function getProductName(productCode) {
     return products[productCode] || productCode || 'Tidak Diketahui';
 }
 
-function getStatusBadge(status) {
-    const badges = {
-        'pending': { 
-            color: 'secondary', 
-            text: 'Menunggu',
-            icon: 'bi-clock'
-        },
-        'processing': { 
-            color: 'warning', 
-            text: 'Diproses',
-            icon: 'bi-gear'
-        },
-        'completed': { 
-            color: 'success', 
-            text: 'Selesai',
-            icon: 'bi-check-circle'
-        },
-        'cancelled': { 
-            color: 'danger', 
-            text: 'Dibatalkan',
-            icon: 'bi-x-circle'
-        },
-        'pending-local': {
-            color: 'info',
-            text: 'Lokal',
-            icon: 'bi-device-ssd'
-        }
+function getProductCategoryName(categoryCode) {
+    const categories = {
+        'undangan': 'Undangan',
+        'kartu-nama': 'Kartu Nama',
+        'spanduk': 'Spanduk/Banner',
+        'brosur': 'Brosur/Flyer',
+        'poster': 'Poster'
     };
-    
-    const badge = badges[status] || { 
-        color: 'secondary', 
-        text: status || 'pending',
-        icon: 'bi-question-circle'
-    };
-    
-    return `
-        <span class="badge bg-${badge.color} d-flex align-items-center gap-1">
-            <i class="bi ${badge.icon}"></i>
-            ${badge.text}
-        </span>
-    `;
+    return categories[categoryCode] || categoryCode || 'Lainnya';
 }
 
-// Global functions (accessible from HTML onclick)
+function getStatusBadge(status) {
+    const badges = {
+        'pending': { color: 'secondary', text: 'Menunggu' },
+        'processing': { color: 'warning', text: 'Diproses' },
+        'completed': { color: 'success', text: 'Selesai' },
+        'cancelled': { color: 'danger', text: 'Dibatalkan' }
+    };
+    
+    const badge = badges[status] || { color: 'secondary', text: status };
+    return `<span class="badge bg-${badge.color}">${badge.text}</span>`;
+}
+
+// Global functions untuk onclick
 window.viewOrderDetail = async function(orderId) {
     try {
         const order = allOrders.find(o => o.id === orderId);
@@ -776,132 +1212,47 @@ window.viewOrderDetail = async function(orderId) {
             return;
         }
         
-        const modalElement = document.getElementById('orderDetailModal');
-        if (!modalElement) {
-            showAlert('warning', 'Modal tidak ditemukan');
-            return;
-        }
-        
-        const modal = new bootstrap.Modal(modalElement);
+        const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
         const content = document.getElementById('orderDetailContent');
         
         const date = order.tanggalDate ? 
-            order.tanggalDate.toLocaleDateString('id-ID', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            }) : 
-            (order.tanggal ? new Date(order.tanggal).toLocaleDateString('id-ID') : 'N/A');
-        
-        // Format untuk table detail
-        const detailRows = [
-            { label: 'No. Pesanan', value: order.nomorPesanan || order.id },
-            { label: 'Tanggal Pesan', value: date },
-            { label: 'Status', value: getStatusBadge(order.status) },
-            { label: 'Total Harga', value: `Rp ${(order.totalHarga || 0).toLocaleString('id-ID')}` }
-        ];
-        
-        const customerRows = [
-            { label: 'Nama Lengkap', value: order.nama || '-' },
-            { label: 'Email', value: order.email || '-' },
-            { label: 'Telepon', value: order.telepon || '-' },
-            { label: 'Alamat', value: order.alamat || '-' }
-        ];
-        
-        const productRows = [
-            { label: 'Produk', value: getProductName(order.produk) },
-            { label: 'Ukuran', value: order.ukuran || '-' },
-            { label: 'Jenis Kertas', value: order.kertas || '-' },
-            { label: 'Jumlah', value: order.jumlah || 1 },
-            { label: 'Catatan', value: order.catatan || 'Tidak ada catatan' },
-            { label: 'File Desain', value: order.fileDesain || 'Tidak ada file' }
-        ];
-        
-        // Tambahkan informasi sync jika ada
-        const extraInfo = [];
-        if (order.syncedFromLocal) {
-            extraInfo.push('<div class="alert alert-info mt-3">' +
-                '<i class="bi bi-info-circle me-2"></i>' +
-                'Pesanan ini disinkron dari data lokal' +
-                '</div>');
-        }
-        
-        if (order.isLocal && !order.synced) {
-            extraInfo.push('<div class="alert alert-warning mt-3">' +
-                '<i class="bi bi-exclamation-triangle me-2"></i>' +
-                'Pesanan ini masih tersimpan secara lokal' +
-                '</div>');
-        }
+            order.tanggalDate.toLocaleDateString('id-ID') : 
+            'N/A';
         
         content.innerHTML = `
             <div class="row">
                 <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header bg-primary text-white">
-                            <h6 class="mb-0"><i class="bi bi-receipt me-2"></i>Informasi Pesanan</h6>
-                        </div>
-                        <div class="card-body">
-                            <table class="table table-sm">
-                                <tbody>
-                                    ${detailRows.map(row => `
-                                        <tr>
-                                            <td class="fw-medium" style="width: 40%">${row.label}</td>
-                                            <td>${row.value}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    <h6>Informasi Pesanan</h6>
+                    <table class="table table-sm">
+                        <tr><td><strong>No. Pesanan:</strong></td><td>${order.nomorPesanan || order.id}</td></tr>
+                        <tr><td><strong>Tanggal:</strong></td><td>${date}</td></tr>
+                        <tr><td><strong>Status:</strong></td><td>${getStatusBadge(order.status)}</td></tr>
+                        <tr><td><strong>Total:</strong></td><td>Rp ${(order.totalHarga || 0).toLocaleString('id-ID')}</td></tr>
+                    </table>
                 </div>
                 <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header bg-success text-white">
-                            <h6 class="mb-0"><i class="bi bi-person me-2"></i>Informasi Pelanggan</h6>
-                        </div>
-                        <div class="card-body">
-                            <table class="table table-sm">
-                                <tbody>
-                                    ${customerRows.map(row => `
-                                        <tr>
-                                            <td class="fw-medium" style="width: 40%">${row.label}</td>
-                                            <td>${row.value}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    <h6>Informasi Pelanggan</h6>
+                    <table class="table table-sm">
+                        <tr><td><strong>Nama:</strong></td><td>${order.nama || '-'}</td></tr>
+                        <tr><td><strong>Email:</strong></td><td>${order.email || '-'}</td></tr>
+                        <tr><td><strong>Telepon:</strong></td><td>${order.telepon || '-'}</td></tr>
+                        <tr><td><strong>Alamat:</strong></td><td>${order.alamat || '-'}</td></tr>
+                    </table>
                 </div>
             </div>
-            
             <div class="row mt-3">
                 <div class="col-12">
-                    <div class="card">
-                        <div class="card-header bg-info text-white">
-                            <h6 class="mb-0"><i class="bi bi-box-seam me-2"></i>Detail Produk</h6>
-                        </div>
-                        <div class="card-body">
-                            <table class="table table-sm">
-                                <tbody>
-                                    ${productRows.map(row => `
-                                        <tr>
-                                            <td class="fw-medium" style="width: 30%">${row.label}</td>
-                                            <td>${row.value}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    <h6>Detail Produk</h6>
+                    <table class="table table-sm">
+                        <tr><td><strong>Produk:</strong></td><td>${getProductName(order.produk)}</td></tr>
+                        <tr><td><strong>Ukuran:</strong></td><td>${order.ukuran || '-'}</td></tr>
+                        <tr><td><strong>Kertas:</strong></td><td>${order.kertas || '-'}</td></tr>
+                        <tr><td><strong>Jumlah:</strong></td><td>${order.jumlah || 1}</td></tr>
+                        <tr><td><strong>Catatan:</strong></td><td>${order.catatan || 'Tidak ada'}</td></tr>
+                        <tr><td><strong>File:</strong></td><td>${order.fileDesain || 'Tidak ada'}</td></tr>
+                    </table>
                 </div>
             </div>
-            
-            ${extraInfo.join('')}
-            
             <div class="mt-3 text-end">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
             </div>
@@ -911,12 +1262,12 @@ window.viewOrderDetail = async function(orderId) {
         
     } catch (error) {
         console.error('Error viewing order:', error);
-        showAlert('danger', 'Gagal memuat detail pesanan: ' + error.message);
+        showAlert('danger', 'Gagal memuat detail');
     }
 };
 
 window.updateOrderStatus = async function(orderId, newStatus) {
-    if (!confirm(`Ubah status pesanan menjadi "${newStatus}"?`)) return;
+    if (!confirm(`Ubah status menjadi "${newStatus}"?`)) return;
     
     try {
         const orderRef = doc(db, 'orders', orderId);
@@ -935,19 +1286,11 @@ window.updateOrderStatus = async function(orderId, newStatus) {
         displayRecentOrders(allOrders.slice(0, 5));
         displayAllOrders(allOrders);
         
-        showAlert('success', `Status pesanan berhasil diubah menjadi "${newStatus}"`);
+        showAlert('success', `Status berhasil diubah menjadi "${newStatus}"`);
         
     } catch (error) {
         console.error('Error updating order:', error);
-        
-        let errorMessage = 'Gagal mengubah status pesanan: ';
-        if (error.code === 'permission-denied') {
-            errorMessage += 'Anda tidak memiliki izin untuk mengubah data.';
-        } else {
-            errorMessage += error.message;
-        }
-        
-        showAlert('danger', errorMessage);
+        showAlert('danger', 'Gagal mengubah status');
     }
 };
 
@@ -958,31 +1301,21 @@ window.viewCustomerOrders = function(customerEmail) {
         return;
     }
     
-    // Switch to orders section and filter
-    const ordersLink = document.querySelector('[data-section="orders"]');
-    if (ordersLink) {
-        ordersLink.click();
-    }
+    // Switch to orders section
+    document.querySelector('[data-section="orders"]').click();
     
-    // Set filter untuk email ini
-    const filterStatus = document.getElementById('filterStatus');
-    const filterProduct = document.getElementById('filterProduct');
-    const filterStartDate = document.getElementById('filterStartDate');
-    const filterEndDate = document.getElementById('filterEndDate');
+    // Reset filters
+    resetFilters();
     
-    if (filterStatus) filterStatus.value = '';
-    if (filterProduct) filterProduct.value = '';
-    if (filterStartDate) filterStartDate.value = '';
-    if (filterEndDate) filterEndDate.value = '';
-    
-    // Tidak ada filter email di UI, jadi tampilkan semua dan beri pesan
-    showAlert('info', `Menampilkan ${customerOrders.length} pesanan dari ${customerEmail}`);
+    // Show filtered orders
     displayAllOrders(customerOrders);
+    showAlert('info', `Menampilkan ${customerOrders.length} pesanan dari ${customerEmail}`);
 };
 
-// Refresh data button (tambahkan ke dashboard jika perlu)
+// Refresh data
 window.refreshDashboardData = async function() {
     await loadDashboardData();
+    await loadProducts();
     showAlert('success', 'Data berhasil diperbarui');
 };
 
@@ -993,14 +1326,13 @@ async function handleLogout() {
         window.location.href = 'login.html';
     } catch (error) {
         console.error('Error logging out:', error);
-        showAlert('danger', 'Gagal logout: ' + error.message);
+        showAlert('danger', 'Gagal logout');
     }
 }
 
 // Utility functions
 function showLoading(show) {
     if (show) {
-        // Cek apakah loading spinner sudah ada
         let loader = document.getElementById('loadingSpinner');
         if (!loader) {
             loader = document.createElement('div');
@@ -1009,48 +1341,34 @@ function showLoading(show) {
             loader.style.background = 'rgba(0,0,0,0.5)';
             loader.style.zIndex = '9999';
             loader.innerHTML = `
-                <div class="text-center">
-                    <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
-                    <p class="text-white">Memuat data...</p>
+                <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
                 </div>
             `;
             document.body.appendChild(loader);
         }
     } else {
         const loader = document.getElementById('loadingSpinner');
-        if (loader) {
-            loader.remove();
-        }
+        if (loader) loader.remove();
     }
 }
 
 function showAlert(type, message) {
-    // Hapus alert sebelumnya
+    // Remove existing alert
     const existingAlert = document.querySelector('.global-alert');
-    if (existingAlert) {
-        existingAlert.remove();
-    }
-    
-    const icons = {
-        'success': 'bi-check-circle',
-        'danger': 'bi-exclamation-triangle',
-        'warning': 'bi-exclamation-circle',
-        'info': 'bi-info-circle'
-    };
+    if (existingAlert) existingAlert.remove();
     
     const alertDiv = document.createElement('div');
     alertDiv.className = `global-alert alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
     alertDiv.style.zIndex = '9998';
     alertDiv.style.maxWidth = '90%';
     alertDiv.innerHTML = `
-        <i class="bi ${icons[type] || 'bi-info-circle'} me-2"></i>
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
     
     document.body.appendChild(alertDiv);
     
-    // Auto-hide setelah 5 detik
     setTimeout(() => {
         if (alertDiv.parentElement) {
             alertDiv.remove();
@@ -1058,10 +1376,10 @@ function showAlert(type, message) {
     }, 5000);
 }
 
-// Auto-refresh data setiap 30 detik
-setInterval(async () => {
+// Auto refresh setiap 60 detik
+setInterval(() => {
     if (document.visibilityState === 'visible' && currentUser) {
-        console.log('🔄 Auto-refreshing dashboard data...');
-        await loadDashboardData();
+        console.log('🔄 Auto-refreshing data...');
+        loadDashboardData();
     }
-}, 30000);
+}, 60000);

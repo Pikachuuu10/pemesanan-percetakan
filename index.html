@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow">
         <div class="container">
             <a class="navbar-brand fw-bold" href="index.html">
                 <i class="bi bi-printer-fill me-2"></i>Deal Printing
@@ -37,102 +37,234 @@
         </div>
     </nav>
 
-    
-
     <!-- Hero Section -->
     <section class="hero-section py-5 mt-5">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
-                    <h1 class="display-4 fw-bold mb-4">Percetakan Online <span class="text-primary">Terbaik</span> untuk Semua Kebutuhan Anda</h1>
-                    <p class="lead mb-4">Cetak undangan, kartu nama, spanduk, brosur, dan poster dengan kualitas terbaik. Pesan sekarang, kami antar ke tempat Anda!</p>
-                    <a href="order.html" class="btn btn-primary btn-lg px-4">
-                        <i class="bi bi-cart-plus me-2"></i>Pesan Sekarang
-                    </a>
+                    <h1 class="display-4 fw-bold mb-4 text-dark">Percetakan Online <span class="text-primary">Terbaik</span> untuk Semua Kebutuhan Anda</h1>
+                    <p class="lead mb-4 text-muted">Cetak undangan, kartu nama, spanduk, brosur, dan poster dengan kualitas terbaik. Pesan sekarang, kami antar ke tempat Anda!</p>
+                    <div class="d-flex gap-3">
+                        <a href="order.html" class="btn btn-primary btn-lg px-4">
+                            <i class="bi bi-cart-plus me-2"></i>Pesan Sekarang
+                        </a>
+                        <a href="#services" class="btn btn-outline-primary btn-lg px-4">
+                            <i class="bi bi-eye me-2"></i>Lihat Layanan
+                        </a>
+                    </div>
                 </div>
                 <div class="col-lg-6">
-                    <img src="img/brosur.jpg" alt="Printing Services" class="img-fluid rounded shadow">
+                    <div class="hero-image position-relative">
+                        <div class="rounded-circle bg-primary position-absolute top-0 start-0 w-75 h-75 opacity-10"></div>
+                        <div class="rounded-circle bg-success position-absolute bottom-0 end-0 w-50 h-50 opacity-10"></div>
+                        <div class="position-relative text-center">
+                            <i class="bi bi-printer display-1 text-primary mb-3"></i>
+                            <h4 class="fw-bold">High Quality Printing</h4>
+                            <p class="text-muted">Hasil cetak tajam dan berkualitas</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Layanan -->
-    <section class="services py-5 bg-light">
+    <!-- Services Section -->
+    <section id="services" class="services py-5 bg-light">
         <div class="container">
-            <h2 class="text-center mb-5">Layanan <span class="text-primary">Kami</span></h2>
+            <div class="text-center mb-5">
+                <h2 class="fw-bold text-dark mb-3">Layanan <span class="text-primary">Kami</span></h2>
+                <p class="text-muted w-75 mx-auto">Kami menyediakan berbagai layanan percetakan dengan kualitas terbaik dan harga terjangkau</p>
+            </div>
+            
             <div class="row g-4">
+                <!-- Undangan -->
                 <div class="col-md-4">
-                    <div class="card service-card h-100 border-0 shadow">
-                        <img src="img/undangan.jpg" class="card-img-top" alt="Cetak Undangan">
-                        <div class="card-body">
-                            <h5 class="card-title">Cetak Undangan</h5>
-                            <p class="card-text">Undangan pernikahan, ulang tahun, atau acara spesial Anda dengan desain elegan.</p>
-                            <div class="text-primary fw-bold">Mulai dari Rp 50.000</div>
+                    <div class="card service-card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="icon-wrapper bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                                <i class="bi bi-envelope-heart display-5 text-primary"></i>
+                            </div>
+                            <h5 class="card-title fw-bold mb-3">Cetak Undangan</h5>
+                            <p class="card-text text-muted mb-4">Undangan pernikahan, ulang tahun, atau acara spesial Anda dengan desain elegan dan bahan berkualitas.</p>
+                            <div class="price-tag">
+                                <span class="text-primary fw-bold fs-4">Rp 50.000</span>
+                                <small class="text-muted d-block">Mulai dari</small>
+                            </div>
+                            <a href="order.html" class="btn btn-outline-primary mt-3">Pesan Sekarang</a>
                         </div>
                     </div>
                 </div>
+                <!-- Kartu Nama -->
                 <div class="col-md-4">
-                    <div class="card service-card h-100 border-0 shadow">
-                        <img src="img/kartu-nama.jpg" class="card-img-top" alt="Cetak Kartu Nama">
-                        <div class="card-body">
-                            <h5 class="card-title">Kartu Nama</h5>
-                            <p class="card-text">Kartu nama profesional untuk bisnis Anda dengan berbagai pilihan material.</p>
-                            <div class="text-primary fw-bold">Mulai dari Rp 25.000</div>
+                    <div class="card service-card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="icon-wrapper bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                                <i class="bi bi-person-badge display-5 text-success"></i>
+                            </div>
+                            <h5 class="card-title fw-bold mb-3">Kartu Nama</h5>
+                            <p class="card-text text-muted mb-4">Kartu nama profesional untuk bisnis Anda dengan berbagai pilihan material dan finishing eksklusif.</p>
+                            <div class="price-tag">
+                                <span class="text-primary fw-bold fs-4">Rp 25.000</span>
+                                <small class="text-muted d-block">Mulai dari</small>
+                            </div>
+                            <a href="order.html" class="btn btn-outline-primary mt-3">Pesan Sekarang</a>
                         </div>
                     </div>
                 </div>
+                <!-- Spanduk -->
                 <div class="col-md-4">
-                    <div class="card service-card h-100 border-0 shadow">
-                        <img src="img/spanduk.jpg" class="card-img-top" alt="Cetak Spanduk">
-                        <div class="card-body">
-                            <h5 class="card-title">Spanduk & Banner</h5>
-                            <p class="card-text">Spanduk dan banner untuk promosi usaha atau acara dengan tahan cuaca.</p>
-                            <div class="text-primary fw-bold">Mulai dari Rp 100.000</div>
+                    <div class="card service-card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="icon-wrapper bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                                <i class="bi bi-signpost display-5 text-warning"></i>
+                            </div>
+                            <h5 class="card-title fw-bold mb-3">Spanduk & Banner</h5>
+                            <p class="card-text text-muted mb-4">Spanduk dan banner untuk promosi usaha atau acara dengan bahan tahan cuaca dan hasil cetak tajam.</p>
+                            <div class="price-tag">
+                                <span class="text-primary fw-bold fs-4">Rp 100.000</span>
+                                <small class="text-muted d-block">Mulai dari</small>
+                            </div>
+                            <a href="order.html" class="btn btn-outline-primary mt-3">Pesan Sekarang</a>
                         </div>
                     </div>
                 </div>
+                <!-- Brosur -->
                 <div class="col-md-6 mt-4">
-                    <div class="card service-card h-100 border-0 shadow">
-                        <img src="img/brosur.jpg" class="card-img-top" alt="Cetak Brosur">
-                        <div class="card-body">
-                            <h5 class="card-title">Brosur & Flyer</h5>
-                            <p class="card-text">Brosur dan flyer untuk promosi produk atau jasa Anda dengan desain menarik.</p>
-                            <div class="text-primary fw-bold">Mulai dari Rp 30.000</div>
+                    <div class="card service-card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="icon-wrapper bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                                <i class="bi bi-newspaper display-5 text-info"></i>
+                            </div>
+                            <h5 class="card-title fw-bold mb-3">Brosur & Flyer</h5>
+                            <p class="card-text text-muted mb-4">Brosur dan flyer untuk promosi produk atau jasa Anda dengan desain menarik dan pilihan kertas beragam.</p>
+                            <div class="price-tag">
+                                <span class="text-primary fw-bold fs-4">Rp 30.000</span>
+                                <small class="text-muted d-block">Mulai dari</small>
+                            </div>
+                            <a href="order.html" class="btn btn-outline-primary mt-3">Pesan Sekarang</a>
                         </div>
                     </div>
                 </div>
+                <!-- Poster -->
                 <div class="col-md-6 mt-4">
-                    <div class="card service-card h-100 border-0 shadow">
-                        <img src="img/poster.jpg" class="card-img-top" alt="Cetak Poster">
-                        <div class="card-body">
-                            <h5 class="card-title">Poster & Artwork</h5>
-                            <p class="card-text">Poster untuk dekorasi atau promosi dengan kualitas cetak tinggi.</p>
-                            <div class="text-primary fw-bold">Mulai dari Rp 40.000</div>
+                    <div class="card service-card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="icon-wrapper bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                                <i class="bi bi-image-alt display-5 text-danger"></i>
+                            </div>
+                            <h5 class="card-title fw-bold mb-3">Poster & Artwork</h5>
+                            <p class="card-text text-muted mb-4">Poster untuk dekorasi atau promosi dengan kualitas cetak tinggi dan warna yang hidup.</p>
+                            <div class="price-tag">
+                                <span class="text-primary fw-bold fs-4">Rp 40.000</span>
+                                <small class="text-muted d-block">Mulai dari</small>
+                            </div>
+                            <a href="order.html" class="btn btn-outline-primary mt-3">Pesan Sekarang</a>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold text-dark mb-3">Kenapa Memilih <span class="text-primary">Deal Printing?</span></h2>
+                <p class="text-muted w-75 mx-auto">Kami memberikan pelayanan terbaik dengan berbagai keunggulan</p>
+            </div>
+            <div class="row g-4">
+                <!-- Fitur tetap sama -->
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section dengan ikon WhatsApp -->
+    <section class="cta-section py-5 bg-primary text-white">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h2 class="fw-bold mb-3">Siap Mencetak Kebutuhan Anda?</h2>
+                    <p class="mb-0 opacity-75">Pesan sekarang dan dapatkan kualitas cetak terbaik dengan harga terjangkau.</p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <a href="https://wa.me/6289627694245" target="_blank" class="d-inline-flex align-items-center text-white text-decoration-none" title="Hubungi via WhatsApp" style="font-weight:bold; font-size:1.3rem;">
+                        <i class="bi bi-whatsapp me-2" style="color:#25D366; font-size:2.8rem;"></i>
+                        <span class="fw-bold">Hubungi via WhatsApp</span>
+                    </a>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white py-4">
+    <footer class="bg-dark text-white py-5">
         <div class="container">
             <div class="row">
+                <!-- Kolom Deal Printing & Sosial Media -->
+                <div class="col-lg-4 mb-4">
+                    <h4 class="fw-bold mb-4">
+                        <i class="bi bi-printer-fill me-2 text-primary"></i>Deal Printing
+                    </h4>
+                    <p class="opacity-75">Solusi percetakan online terpercaya untuk semua kebutuhan bisnis dan personal Anda.</p>
+                    <div class="social-links mt-4">
+                        <a href="#" class="text-white me-3"><i class="bi bi-facebook fs-5"></i></a>
+                        <a href="#" class="text-white me-3"><i class="bi bi-instagram fs-5"></i></a>
+                        <a href="#" class="text-white me-3"><i class="bi bi-twitter fs-5"></i></a>
+                        <a href="https://wa.me/6289627694245" class="text-white" target="_blank"><i class="bi bi-whatsapp fs-5"></i></a>
+                    </div>
+                </div>
+
+                <!-- Kolom Kontak -->
+                <div class="col-lg-4 mb-4">
+                    <h5 class="fw-bold mb-4">Kontak Kami</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <i class="bi bi-geo-alt me-2 text-primary"></i>
+                            Jl. Percetakan No. 123, Jakarta
+                        </li>
+                        <li class="mb-3">
+                            <i class="bi bi-telephone me-2 text-primary"></i>
+                            (021) 1234-5678
+                        </li>
+                        <li class="mb-3">
+                            <i class="bi bi-whatsapp me-2 text-primary"></i>
+                            <a href="https://wa.me/6289627694245" class="text-white text-decoration-none" target="_blank">089627694245</a>
+                        </li>
+                        <li>
+                            <i class="bi bi-envelope me-2 text-primary"></i>
+                            info@dealprinting.com
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Kolom Jam Operasional -->
+                <div class="col-lg-4 mb-4">
+                    <h5 class="fw-bold mb-4">Jam Operasional</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">Senin - Jumat: 08:00 - 17:00</li>
+                        <li class="mb-2">Sabtu: 08:00 - 15:00</li>
+                        <li>Minggu & Hari Libur: Tutup</li>
+                    </ul>
+                    <div class="mt-4">
+                        <a href="admin-dashboard.html" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-shield-lock me-2"></i>Admin Area
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <hr class="opacity-25 my-4">
+            <div class="row">
                 <div class="col-md-6">
-                    <h5><i class="bi bi-printer-fill me-2"></i>Deal Printing</h5>
-                    <p>Solusi percetakan online terpercaya untuk semua kebutuhan Anda.</p>
+                    <p class="mb-0 opacity-75">&copy; 2024 Deal Printing. All rights reserved.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p>Kontak: info@dealprinting.com | Telp: (021) 1234-5678</p>
-                    <p>&copy; 2024 Deal Printing. All rights reserved.</p>
+                    <p class="mb-0 opacity-75">Developed with <i class="bi bi-heart-fill text-danger"></i> by Deal Printing Team</p>
                 </div>
             </div>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script type="module" src="js/index.js"></script>
 </body>
 </html>

@@ -9,6 +9,7 @@ body {
     display: flex;
     width: 100%;
     align-items: stretch;
+    overflow-x: hidden !important;   /* FIX dashboard keluar */
 }
 
 #sidebar-wrapper {
@@ -20,10 +21,40 @@ body {
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
 }
 
+.sidebar-heading {
+    display: flex !important;
+    text-align: center !important;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sidebar-heading .d-flex {
+    width: 100%;
+}
+
+#sidebarCloseBtn {
+    font-size: 1.5rem;
+    padding: 0.25rem 0.5rem !important;
+    width: auto !important;
+    height: auto !important;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+    border: none;
+    background: none !important;
+}
+
+#sidebarCloseBtn:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
 #page-content-wrapper {
     width: 100%;
     min-height: 100vh;
     transition: all 0.3s;
+    overflow-x: hidden !important;   /* FIX tombol tidak bisa diklik */
+    position: relative;
+    padding-bottom: 25px;
 }
 
 #menu-toggle {
@@ -53,11 +84,38 @@ body {
     color: white;
 }
 
+/* Sidebar Close Button */
+#sidebarCloseBtn {
+    font-size: 1.5rem;
+    padding: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+}
+
+#sidebarCloseBtn:hover {
+    opacity: 1;
+}
+
+/* Card Statistik — SAMAKAN TINGGI */
 .stat-card {
     border-radius: 10px;
     border: none;
     transition: transform 0.3s, box-shadow 0.3s;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    height: 140px;                     /* FIX Card Pendapatan membesar */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.stat-value {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .stat-card:hover {
@@ -74,6 +132,7 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* TABLE STYLE */
 .table {
     border-radius: 10px;
     overflow: hidden;
@@ -97,6 +156,14 @@ body {
     background-color: rgba(13, 110, 253, 0.05);
 }
 
+/* TOTAL HARGA — Rp + Angka MENYATU */
+.table td.total-column {
+    white-space: nowrap;
+    text-align: right;
+    font-weight: 600;
+}
+
+/* ACTION BUTTON */
 .btn-action {
     padding: 5px 10px;
     margin: 0 2px;
@@ -115,6 +182,7 @@ body {
     font-size: 0.85em;
 }
 
+/* Card Styling */
 .card {
     border: none;
     border-radius: 10px;
@@ -133,6 +201,7 @@ body {
     padding: 20px;
 }
 
+/* Form */
 .form-control, .form-select {
     border-radius: 8px;
     border: 1px solid #dee2e6;
@@ -157,13 +226,13 @@ canvas {
     border: none;
 }
 
-/* Loading spinner */
+/* Spinner */
 .spinner-border {
     width: 3rem;
     height: 3rem;
 }
 
-/* Responsive */
+/* RESPONSIVE */
 @media (max-width: 768px) {
     #sidebar-wrapper {
         margin-left: -250px;
@@ -181,6 +250,8 @@ canvas {
     
     .stat-card {
         margin-bottom: 15px;
+        height: auto;              /* fleksibel di HP */
+        padding: 20px 0;
     }
     
     .table-responsive {
@@ -193,7 +264,7 @@ canvas {
     }
 }
 
-/* Print styles */
+/* PRINT */
 @media print {
     #sidebar-wrapper,
     #menu-toggle,

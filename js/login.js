@@ -2,7 +2,6 @@ import {
     auth, 
     createUserWithEmailAndPassword, 
     signInWithEmailAndPassword,
-    signOut,
     onAuthStateChanged 
 } from './config.js';
 
@@ -22,7 +21,6 @@ togglePassword.addEventListener('click', function() {
 onAuthStateChanged(auth, (user) => {
     if (user) {
         console.log('User sudah login:', user.email);
-
         if (window.location.pathname.includes('login.html')) {
             window.location.href = 'admin-dashboard.html';
         }
@@ -43,19 +41,16 @@ loginForm.addEventListener('submit', async (e) => {
     
     const submitBtn = loginForm.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Memproses...';
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Memproses...';
     submitBtn.disabled = true;
     
     try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-        
         console.log('Login berhasil:', user);
         window.location.href = 'admin-dashboard.html';
-        
     } catch (error) {
         console.error('Login error:', error);
-        
         let errorMessage = 'Login gagal. ';
         switch (error.code) {
             case 'auth/invalid-email':
@@ -71,20 +66,21 @@ loginForm.addEventListener('submit', async (e) => {
             default:
                 errorMessage += error.message;
         }
-        
         showAlert('error', errorMessage);
 
         if (error.code === 'auth/user-not-found') {
-            const registerBtn = document.createElement('button');
-            registerBtn.className = 'btn btn-sm btn-outline-success mt-2';
-            registerBtn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Buat Akun Baru';
-            registerBtn.addEventListener('click', () => {
-                registerAdmin(email, password);
-            });
-            
             const alertDiv = document.querySelector('.alert');
-            alertDiv.appendChild(document.createElement('br'));
-            alertDiv.appendChild(registerBtn);
+            if (!document.getElementById('registerBtnDynamic')) {
+                const registerBtnDynamic = document.createElement('button');
+                registerBtnDynamic.id = 'registerBtnDynamic';
+                registerBtnDynamic.className = 'btn btn-outline-success mt-3 w-100';
+                registerBtnDynamic.style.padding = '10px';
+                registerBtnDynamic.style.fontSize = '1rem';
+                registerBtnDynamic.innerHTML = '<i class="bi bi-person-plus me-2"></i>Buat Akun Baru';
+                registerBtnDynamic.addEventListener('click', () => registerAdmin(email, password));
+                alertDiv.appendChild(document.createElement('br'));
+                alertDiv.appendChild(registerBtnDynamic);
+            }
         }
     } finally {
         submitBtn.innerHTML = originalText;
@@ -97,17 +93,15 @@ async function registerAdmin(email, password) {
     try {
         const submitBtn = loginForm.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Membuat akun...';
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Membuat akun...';
         submitBtn.disabled = true;
 
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         console.log('Admin berhasil dibuat:', userCredential.user);
-        
         showAlert('success', 'Akun berhasil dibuat! Mengarahkan ke dashboard...');
         setTimeout(() => {
             window.location.href = 'admin-dashboard.html';
         }, 2000);
-        
     } catch (error) {
         console.error('Error registrasi:', error);
         let errorMessage = 'Registrasi gagal. ';
@@ -122,6 +116,10 @@ async function registerAdmin(email, password) {
                 errorMessage += error.message;
         }
         showAlert('error', errorMessage);
+    } finally {
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>Login / Buat Akun';
     }
 }
 
@@ -146,18 +144,18 @@ function showAlert(type, message) {
     }
 }
 
-// Container baris
+// Tombol “Buat Admin” utama di bawah form login
 const rowContainer = document.createElement('div');
 rowContainer.style.display = "flex";
 rowContainer.style.justifyContent = "center";
-rowContainer.style.gap = "12px";
 rowContainer.style.marginTop = "15px";
 
-
-// Tombol Registrasi Admin Baru
 const registerBtn = document.createElement('button');
-registerBtn.className = 'btn btn-outline-success btn-sm';
-registerBtn.style.width = "180px";
+registerBtn.className = 'btn btn-outline-success';
+registerBtn.style.width = "100%";  // full-width
+registerBtn.style.maxWidth = "300px"; // maksimal lebar
+registerBtn.style.padding = "12px";
+registerBtn.style.fontSize = "1.1rem";
 registerBtn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Buat Admin';
 registerBtn.addEventListener('click', () => {
     const email = prompt('Masukkan email untuk admin baru:');
@@ -176,9 +174,8 @@ registerBtn.addEventListener('click', () => {
     }
 });
 
-// Masukkan tombol ke dalam baris
 rowContainer.appendChild(registerBtn);
 
-// Sisipkan setelah tombol login
+// Sisipkan tombol setelah tombol login
 const formGroup = document.querySelector('#loginForm .d-grid');
 formGroup.parentNode.insertBefore(rowContainer, formGroup.nextSibling);

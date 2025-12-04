@@ -1,4 +1,4 @@
-// Import Firebase modules
+// Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 import { 
@@ -22,7 +22,7 @@ import {
     orderBy
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Firebase configuration
+// Your web app's Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyCe3cO7xpeF_Tgp7MCTaZoi9MTcuZFpfFI",
     authDomain: "deal-printing-app.firebaseapp.com",
@@ -59,4 +59,5 @@ export {
     where, 
     serverTimestamp,
     orderBy
+    // TIDAK ADA limit di Firebase v10
 };

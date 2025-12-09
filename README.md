@@ -1,5 +1,5 @@
 # 📌 Final Project RPL – Sistem [Deal Printing]
-Deal Printing – Platform Edukasi Interaktif Anak
+Deal Printing – Platform Pemesanan Percetakan
 
 ## 👥 Identitas Kelompok
 - **Nama Kelompok :** [kelompok 3]
